@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html th:replace="~{layout/layout_main :: layout(~{::title}, ~{::link}, ~{::style}, ~{::script}, ~{::div})}" lang="ko" xmlns:th="http://www.thymeleaf.org"> 
+<!-- ::title 은   현재 페이지의 title   태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 첫번째  파라미터로 전달한다. -->
+<!-- ::link 는    현재 페이지의 link    태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 두번째  파라미터로 전달한다. -->
+<!-- ::style 은   현재 페이지의 style   태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 세번째  파라미터로 전달한다. -->
+<!-- ::script 는  현재 페이지의 script  태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 네번째  파라미터로 전달한다. -->
+<!-- ::section 은 현재 페이지의 section 태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 다섯번째 파라미터로 전달한다. -->
+
+<head>
+
+<meta charset="UTF-8">
+<title>로그인 페이지</title>
+
+<link rel="stylesheet" href="" />
+
+<style type="text/css"></style>
+
+<!--/* 자바스크립트 인라인 */-->
+<script th:inline="javascript">
+/*<![CDATA[*/
+	
+  const contextPath = "/user-service"+/*[[@{/}]]*/ '';
+  // 현재 웹 애플리케이션의 Context Path를 자동으로 가져온다.
+  // 예를 들어, Context Path가 /myapp이면 contextPath = "/myapp/"이 된다.
+
+  $(document).ready(function(){
+	  
+	  $("button#btnLOGIN").click(function(){
+		  func_Login();
+	  });
+	  
+	  
+	  $("input#passwd").keydown(function(event){
+		  
+		  if(event.keyCode == 13) { // 엔터를 했을 경우
+			  func_Login();
+		  }
+	  });
+	  
+  });// end of $(document).ready(function(){})------------------------------
+  
+  
+  // Function Declaration
+  function func_Login() {
+	  
+	  const memberid = $("input#memberid").val(); 
+	  const passwd = $("input#passwd").val(); 
+	
+	  if(memberid.trim()=="") {
+	 	 alert("아이디를 입력하세요!!");
+		 $("input#memberid").val(""); 
+		 $("input#memberid").focus();
+		 return; // 종료 
+	  }
+	
+	  if(passwd.trim()=="") {
+		 alert("비밀번호를 입력하세요!!");
+		 $("input#passwd").val(""); 
+		 $("input#passwd").focus();
+		 return; // 종료 
+	  }
+	  
+	  
+	  const data = {"memberid":memberid
+			       ,"passwd":passwd};
+	  
+	  // ▣ CSRF AJAX 사용시 설정 및 실행하기 
+ 	  // templates/layout/layout_main.html 파일의 meta 태그 안에있는 content를 가져와서 AJAX  beforeSend(데이터를 전송하기전) 에 HTTP Header 를 SET 해야 한다. 
+ 	  const token = $("meta[name='_csrf']").attr("content");
+	  const header = $("meta[name='_csrf_header']").attr("content");
+	  
+	  $.ajax({
+	      url:contextPath+"auth/login", 
+	 	  type:"post",
+		  data:JSON.stringify(data),
+		  contentType:"application/json; charset=utf-8",   
+			// 전송하는 내용물의 타입은 json 형태를 띈 문자열임을 명시해주는 것임.
+			// contentType 을 명시하지 않으면 기본은 "application/x-www-form-urlencoded" 이다.
+		  dataType:"json",
+		  
+		  // ▣ CSRF AJAX 사용시 설정 및 실행하기
+  		  beforeSend: function(xhr) {  
+			  xhr.setRequestHeader(header, token);
+			  // 데이터를 전송하기 전에 헤더에 csrf값을 넣어준다.
+          },
+		  
+		  success:function(json){
+			  
+			  console.log("로그인 결과 : ", JSON.stringify(json));  // 아래의 location.href=contextPath+"index"; 을 하면 화면이 이동되어 안보여진다.
+			  /*
+			     로그인 결과 :  {"username":"seoyh",
+			    	          "memberName":"서영학",
+			    	          "grantType":"Bearer",
+			    	          "accessToken":"eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzZW95aCIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTc0MjUyOTU4MX0.3LDrmC5suXRqhyRRduwYRU28pk1ItmhaW0b2FOa3UKsZEMUFChijiB8GA1W0B2sh",
+			    	          "accessTokenExpiresIn":1742529581086,
+			    	          "refreshToken":"eyJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3NDMxMzI1ODF9.aKZCEDxnkd8konN1MDxx1kNPRtlG7RQpRI4VEC0ZfzRcABU3crEf-C5n99511TAq"}
+			  */
+			  
+			  const loginuser = JSON.stringify(json);
+			  
+			  if( ("accessToken" in json) ) { // ("accessToken" in json) 은 json 객체에 accessToken 키가 존재하는지 확인
+				  alert("로그인 성공!!");
+				  localStorage.setItem("JWT", JSON.stringify(json));
+			  }
+			  else {
+				  alert("로그인 실패!! (accessToken 이 없어요)");
+				  localStorage.removeItem("loginuser");
+			  }
+			  			  
+		      location.href=contextPath+"index";
+		      
+		  },
+		  error: function(request, status, error){
+		   
+           switch(request.status) {
+				  case 401:
+				      alert("로그인 실패 !!");
+					  location.href=contextPath;
+					  break;
+					  
+				  default:
+					  alert("code: "+request.status+"\n"+"message: "+request.responseText+"\n"+"error: "+error);	  
+					  break;
+               }
+		  }	   
+	  });
+	  
+  }// end of function func_Login()------------------------
+  
+  /*]]>*/
+</script>
+</head>
+<body>
+
+  <div class="container my-5" style="height: 400px;">
+		<div class="row" style="display: flex; border: solid 0px red;">
+			<div class="col-md-8 col-md-offset-2" style="margin: auto; border: solid 0px blue;">
+				<h2 class="text-muted">로그인</h2>
+				<hr style="border: solid 1px orange">
+				
+				<form name="loginFrm" class="mt-5">
+				<div class="form-row">    
+				    <div class="form-group col-md-6">
+						<label class="text-muted font-weight-bold" for="memberid">아이디</label>
+						<input type="text" class="form-control" name="memberid" id="memberid" value=""/>  <!-- 부트스트랩에서 input 태그에는 항상 class form-control 이 사용되어져야 한다. --> 
+		            </div>
+		
+					<div class="form-group col-md-6">
+						<label class="text-muted font-weight-bold text-muted" for="passwd">비밀번호</label>
+						<input type="password" class="form-control" name="passwd" id="passwd" value="" /> 
+					</div>
+				</div>
+				</form>
+			</div>
+			<div class="col-md-8 col-md-offset-2" style="margin: auto; display: flex; border: solid 0px blue;">
+				<div style="margin: auto; border: solid 0px blue;">
+					<button style="width: 150px; height: 40px;" class="btn btn-primary" type="button" id="btnLOGIN">확인</button>
+				</div>
+			</div>
+		</div>
+  </div>
+   
+</body>
+</html>

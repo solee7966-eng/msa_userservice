@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html th:replace="~{layout/layout_main :: layout(~{::title}, ~{::link}, ~{::style}, ~{::script}, ~{::div})}" lang="ko" xmlns:th="http://www.thymeleaf.org"> 
+<!-- ::title 은   현재 페이지의 title   태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 첫번째  파라미터로 전달한다. -->
+<!-- ::link 는    현재 페이지의 link    태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 두번째  파라미터로 전달한다. -->
+<!-- ::style 은   현재 페이지의 style   태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 세번째  파라미터로 전달한다. -->
+<!-- ::script 는  현재 페이지의 script  태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 네번째  파라미터로 전달한다. -->
+<!-- ::section 은 현재 페이지의 section 태그를 읽어다가 templates/layout/layout_main.html 파일의 th:fragment="layout(title, link, css, script, content)" 에 있는 다섯번째 파라미터로 전달한다. -->
+
+<head>
+
+<meta charset="UTF-8">
+<title>회원가입 페이지</title>
+
+<link rel="stylesheet" th:href="@{/css/memberRegisterForm.css}" />
+
+<style type="text/css"></style>
+
+
+<!--/* 자바스크립트 인라인 */-->
+<script th:inline="javascript">
+/*<![CDATA[*/
+    const contextPath = /*[[@{/}]]*/ '';
+    // 현재 웹 애플리케이션의 Context Path를 자동으로 가져온다.
+    // 예를 들어, Context Path가 /myapp이면 contextPath = "/myapp/"이 된다.
+    // contextPath 를 사용하기 위해서는 반드시 <script type="text/javascript"> 이 아닌 <script th:inline="javascript"> 이어야만 한다.!!!
+
+	let b_flag_idDuplicate_click = false;
+	// "아이디중복확인" 을 클릭했는지 클릭을 안했는지 여부를 알아오기 위한 용도.
+	
+	$(function(){
+	  
+	  /*
+	     alert(contextPath); //   / 
+	     alert(`${contextPath}/member/memberidCheck`); //   //member/memberidCheck
+	     alert(`${contextPath}member/memberidCheck`);  //   /member/memberidCheck
+	  */
+		
+		 $("span.error").hide();
+		 $("input#memberid").focus();
+		
+		 $("input#memberid").blur( function(e) {
+			
+			const $target = $(e.target);
+			
+			const memberid = $target.val().trim();
+			if(memberid == "") {
+				// 입력하지 않거나 공백만 입력했을 경우 
+				$("table#tblMemberRegister :input").prop("disabled", true);
+				$target.prop("disabled", false);
+				
+			//	$target.next().show();
+			//  또는
+			    $target.parent().find("span.error").show();
+				
+				$target.focus();
+			}
+			else {
+				// 공백이 아닌 글자를 입력했을 경우
+				$("table#tblMemberRegister :input").prop("disabled", false);
+				
+	        //	$target.next().hide();
+			//  또는
+			    $target.parent().find("span.error").hide();
+			}
+			
+		 } ); // 아이디가 memberid 인 것은 포커스를 잃어버렸을 경우(blur) 이벤트를 처리해주는 것이다.
+		
+		
+		 $("input#passwd").blur( function(e) {
+			
+			const $target = $(e.target);
+			
+		//	const regExp = /^.*(?=^.{8,15}$)(?=.*\d)(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).*$/g; 
+		//  또는
+		    const regExp = new RegExp(/^.*(?=^.{8,15}$)(?=.*\d)(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).*$/g); 
+	        //  숫자/문자/특수문자 포함 형태의 8~15자리 이내의 암호 정규표현식 객체 생성 
+	        
+	        const bool = regExp.test($target.val());
+			
+			if(!bool) {
+				// 암호가 정규표현식에 위배된 경우  
+				$("table#tblMemberRegister :input").prop("disabled", true);
+				$target.prop("disabled", false);
+				
+			//	$target.next().show();
+			//  또는
+			    $target.parent().find("span.error").show();
+				
+				$target.focus();
+			}
+			else {
+				// 암호가 정규표현식에 맞는 경우 
+				$("table#tblMemberRegister :input").prop("disabled", false);
+				
+	        //	$target.next().hide();
+			//  또는
+			    $target.parent().find("span.error").hide();
+			}
+			
+		 } ); // 아이디가 passwd 인 것은 포커스를 잃어버렸을 경우(blur) 이벤트를 처리해주는 것이다.
+		
+		
+		 $("input#pwdcheck").blur( function(e) {
+			
+			const $target = $(e.target);
+			
+			const passwd = $("input#passwd").val();
+			const pwdcheck = $target.val();
+			
+			if(passwd != pwdcheck) {
+				// 암호와 암호확인값이 틀린 경우 
+				$("table#tblMemberRegister :input").prop("disabled", true);
+				$target.prop("disabled", false);
+				$("input#passwd").prop("disabled", false);
+				
+			//	$target.next().show();
+			//  또는
+			    $target.parent().find("span.error").show();
+				
+			    $("input#passwd").focus();
+			}
+			else {
+				// 암호와 암호확인값이 같은 경우 
+				$("table#tblMemberRegister :input").prop("disabled", false);
+				
+	        //	$target.next().hide();
+			//  또는
+			    $target.parent().find("span.error").hide();
+			}
+			
+		 } ); // 아이디가 passwd 인 것은 포커스를 잃어버렸을 경우(blur) 이벤트를 처리해주는 것이다.
+		
+		
+	     $("input#name").blur( function(e) {
+			
+			const $target = $(e.target);
+			
+			const name = $target.val().trim();
+			if(name == "") {
+				// 입력하지 않거나 공백만 입력했을 경우 
+				/*	
+				   >>>> .prop() 와 .attr() 의 차이 <<<<	         
+			            .prop() ==> form 태그내에 사용되어지는 엘리먼트의 disabled, selected, checked 의 속성값 확인 또는 변경하는 경우에 사용함. 
+			            .attr() ==> 그 나머지 엘리먼트의 속성값 확인 또는 변경하는 경우에 사용함.
+			    */ 
+				$("table#tblMemberRegister :input").prop("disabled", true);
+				$target.prop("disabled", false);
+				
+			//	$target.next().show();
+			//  또는
+			    $target.parent().find("span.error").show();
+				
+				$target.focus();
+			}
+			else {
+				// 공백이 아닌 글자를 입력했을 경우
+				$("table#tblMemberRegister :input").prop("disabled", false);
+				
+	        //	$target.next().hide();
+			//  또는
+			    $target.parent().find("span.error").hide();
+			}
+			
+		 } ); // 아이디가 name 인 것은 포커스를 잃어버렸을 경우(blur) 이벤트를 처리해주는 것이다. 
+
+		 
+			
+	     // <<< "아이디중복확인" 을 클릭했을 때 이벤트 처리하기(jQuery Ajax 방식)
+	/*	 
+		 $("img#idcheck").click(function() {
+	    	 b_flag_idDuplicate_click = true; 
+	    	 // 가입하기 버튼을 클릭시 "아이디중복확인" 을 클릭했는지 클릭안했는지 알아보기 위한 용도임. 
+	    	 
+	    	 // ▣ CSRF AJAX 사용시 설정 및 실행하기 
+	    	 // templates/layout/layout_main.html 파일의 meta 태그 안에있는 content를 가져와서 AJAX  beforeSend(데이터를 전송하기전) 에 HTTP Header 를 SET 해야 한다.
+	    	 const token = $("meta[name='_csrf']").attr("content");
+		     const header = $("meta[name='_csrf_header']").attr("content");
+	    	 
+	    	 // 입력하고자 하는 아이디가 데이터베이스 테이블에 존재하는지, 존재하지 않는지 알아와야 한다. 
+	     	 $.ajax({
+	     		 url:"/user-service"+contextPath+"member/memberidCheck",
+	     		 data:{"memberid":$("input#memberid").val()}, 
+	     		 type:"post",     
+	     		 dataType:"json",
+	     		 
+	     		 // ▣ CSRF AJAX 사용시 설정 및 실행하기
+	     		 beforeSend: function(xhr) {  
+					xhr.setRequestHeader(header, token);
+					// 데이터를 전송하기 전에 헤더에 csrf값을 넣어준다.
+	             },
+	             
+	     	//	 async:true,      
+	     		 success:function(json){ 
+	     		  // console.log(JSON.stringify(json)); 
+	     			 // {"isExists":false} 또는 {"isExists":true}  이다.  
+	     			
+	     			 if(json.isExists) {
+	     				 // 입력한 memberid 가 이미 사용중이라면 
+	     				 $("span#idcheckResult").html($("input#memberid").val()+" 은 중복된 ID 이므로 사용불가 합니다.").css("color","red");
+	     				 $("input#memberid").val("");
+	     			 }
+	     			 else {
+	     				// 입력한 memberid 가 존재하지 않는 경우라면 
+	     				$("span#idcheckResult").html($("input#memberid").val()+" 은 사용가능 합니다.").css("color","navy"); 
+	     			 }
+	     		 },
+	     		 
+	     		 error: function(request, status, error){
+					alert("code: "+request.status+"\n"+"message: "+request.responseText+"\n"+"error: "+error);
+				 }
+	     		 
+	     	 });
+	     	  
+	     });// end of $("img#idcheck").click(function() {})---------------------
+	*/  
+	 
+	 
+		 // >>> "아이디중복확인" 을 클릭했을 때 이벤트 처리하기(fetch + Promise 방식. 바닐라스크립트)
+		 /*
+		   >>> 주요 변경 사항 요약 <<<
+           -----------------------------------------------------------------------------
+		     항목	          jQuery 방식	                        fetch 방식
+		   -----------------------------------------------------------------------------
+		     URL	      url: ...	                        fetch("...")
+             전송방식       type: "post"                      method: "post"
+		     파라미터 전송	  data: {key1:val1, key2:val2}	    body: key1=val1&key2=val2
+             응답 형식	      dataType:"json"	                .then(res => res.json())
+             성공 처리	      success: function(json) {...}	    .then(json => {...})
+             에러 처리   	  error: function(...)	            .catch(err => {...})
+           -----------------------------------------------------------------------------  
+		*/
+		 
+		 document.querySelector("img#idcheck").addEventListener("click", function () {
+			    b_flag_idDuplicate_click = true;
+			    // 가입하기 버튼을 클릭시 "아이디중복확인" 을 클릭했는지 클릭안했는지 알아보기 위한 용도임. 
+
+			    // 입력하고자 하는 아이디가 데이터베이스 테이블에 존재하는지, 존재하지 않는지 알아와야 한다.
+			    const memberid = document.querySelector("input#memberid").value;
+			    
+			    // ▣ CSRF AJAX 사용시 설정 및 실행하기 
+		    	// meta 태그 안에있는 content를 가져와서 AJAX  beforeSend(데이터를 전송하기전) 에 HTTP Header 를 SET 해야 한다.
+			    const csrftoken = document.querySelector("meta[name='_csrf']").getAttribute("content");
+			    const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+
+			    fetch(`/user-service${contextPath}member/memberidCheck`, {
+			        method: "POST",
+			        headers: {
+			            "Content-Type": "application/x-www-form-urlencoded",
+			            [header]: csrftoken  // ▣ CSRF AJAX 사용시 설정 및 실행하기
+			        },
+			        body: `memberid=${encodeURIComponent(memberid)}`
+			     // body: `memberid=${encodeURIComponent(memberid)}&email=${encodeURIComponent(email)}`
+			    })
+			    .then(response => {
+			        if (!response.ok) throw new Error("서버 오류");
+			        return response.json();
+			    })
+			    .then(json => {
+			        const $resultSpan = document.querySelector("span#idcheckResult");
+			        const $memberidInput = document.querySelector("input#memberid");
+
+			        if (json.isExists) {
+			            $resultSpan.textContent = `${memberid} 은 중복된 ID 이므로 사용불가 합니다.`;
+			            $resultSpan.style.color = "red";
+			            $memberidInput.value = "";
+			        } else {
+			            $resultSpan.textContent = `${memberid} 은 사용가능 합니다.`;
+			            $resultSpan.style.color = "navy";
+			        }
+			    })
+			    .catch(error => {
+			        alert("에러 발생: " + error.message);
+			    });
+		});// end of document.querySelector("img#idcheck").addEventListener("click", function () {} )----------------
+	 
+	     
+	    // 아이디값이 변경되면 가입하기 버튼을 클릭시 "아이디중복확인" 을 클릭했는지 클릭안했는지를 알아보기위한 용도 초기화 시키기  
+	    $("input#memberid").bind("change", () => {
+	        b_flag_idDuplicate_click = false;
+	    });
+	     
+	});// end of $(document).ready()----------------------------------------
+	
+	
+	// >>> Function Declaration <<< //
+	// "가입하기" 버튼 클릭시 호출되는 함수  
+	function goRegister() {
+		
+		// **** 필수입력사항에 모두 입력이 되었는지 검사한다. **** //
+		let b_Flag_requiredInfo = false;
+	
+	/*	
+		$("input.requiredInfo").each( (index, item)=>{
+			const data = $(item).val().trim();
+			if(data == "") {
+				alert("*표시된 필수입력사항은 모두 입력하셔야 합니다.");
+				b_Flag_requiredInfo = true;
+				return false; // break; 라는 뜻이다.
+			}
+		});
+	*/
+	//  또는
+	    const requiredInfo_list = document.querySelectorAll("input.requiredInfo"); 
+	    for(let i=0; i<requiredInfo_list.length; i++) {
+	    	const val = requiredInfo_list[i].value.trim();
+	    	if(val == "") {
+	    		alert("*표시된 필수입력사항은 모두 입력하셔야 합니다.");
+	    		b_Flag_requiredInfo = true;
+	    		break;
+	    	}
+	    }// end of for-----------------------
+	    		
+		if(b_Flag_requiredInfo) {
+			return; // 종료	
+		}
+		
+	    // "아이디중복확인" 을 클릭했는지 여부 알아오기 
+	    if(!b_flag_idDuplicate_click) { 
+	    	// "아이디중복확인" 을 클릭 안 했을 경우 
+	    	alert("아이디중복확인을 클릭하셔야 합니다.");
+	    	
+	    	return; // 종료
+	    }
+	    
+	    const frm = document.registerFrm;
+	    frm.action = "/user-service"+contextPath+"member/register";
+	    frm.method = "post";
+	    frm.submit();
+	    
+	}// end of function goRegister()----------------------
+	
+	
+	function goReset() {
+		$("span.error").hide();
+		$("span#idcheckResult").empty();
+	}// end of function goReset()-------------------------
+
+ /*]]>*/		
+</script>
+
+</head>
+
+<body>
+
+<div id="divRegisterFrm">
+  <form name="registerFrm">
+  
+     <!-- CSRF 토큰 설정 -->
+	 <input type="hidden"
+	        th:name="${_csrf.parameterName}"
+	        th:value="${_csrf.token}" />
+		           
+	 <table id="tblMemberRegister">
+		<thead>
+		<tr>
+			<th colspan="2" id="th">::: Member Register (<span style="font-size: 10pt; font-style: italic;"><span class="star">*</span>표시는 필수입력사항</span>) :::</th>
+		</tr>
+		</thead>
+		<tbody>
+		
+		<tr>
+			<td style="width: 20%; font-weight: bold;">아이디&nbsp;<span class="star">*</span></td>
+			<td style="width: 80%; text-align: left;">
+			    <input type="text" name="memberid" id="memberid" class="requiredInfo" autocomplete="off" />&nbsp;&nbsp;
+			    
+			    <!-- 아이디중복체크 -->
+			    <img id="idcheck" th:src="@{/images/b_id_check.gif}" style="vertical-align: middle;" />
+			    <span id="idcheckResult"></span>
+			    <span class="error">아이디는 필수입력 사항입니다.</span>
+			</td> 
+		</tr>
+		<tr>
+			<td style="width: 20%; font-weight: bold;">비밀번호&nbsp;<span class="star">*</span></td>
+			<td style="width: 80%; text-align: left;"><input type="password" name="passwd" id="passwd" class="requiredInfo" />
+				<span class="error">암호는 영문자,숫자,특수기호가 혼합된 8~15 글자로 입력하세요.</span>
+			</td>
+		</tr>
+		<tr>
+			<td style="width: 20%; font-weight: bold;">비밀번호확인&nbsp;<span class="star">*</span></td>
+			<td style="width: 80%; text-align: left;"><input type="password" id="pwdcheck" class="requiredInfo" /> 
+				<span class="error">암호가 일치하지 않습니다.</span>
+			</td>
+		</tr>
+		
+		<tr>
+			<td style="width: 20%; font-weight: bold;">성명&nbsp;<span class="star">*</span></td>
+			<td style="width: 80%; text-align: left;">
+			    <input type="text" name="name" id="name" class="requiredInfo" autocomplete="off" /> 
+				<span class="error">성명은 필수입력 사항입니다.</span>
+			</td>
+		</tr>
+		
+		<tr>
+			<td colspan="2">
+				<button type="button" class="btn btn-success" style="width: 15%; height: 40px;" onclick="goRegister()">가입하기</button>
+				<button type="reset"  class="btn btn-success" style="width: 15%; height: 40px; margin: 0 5%;" onclick="goReset()">취소하기</button>
+				<button type="button" class="btn btn-success" style="width: 15%; height: 40px;" th:onclick="|location.href='@{/}'|">시작페이지</button>
+			</td>
+		</tr>
+		</tbody>
+	
+	 </table>
+   </form>
+</div>
+   
+</body>
+</html>
